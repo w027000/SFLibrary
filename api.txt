@@ -1,0 +1,808 @@
+版本变化
+2017-9-11
+1.增加控制设置接口（家-18:家长端18号接口)
+2.增加设置ctrl_state的返回值	（家-9)
+3.增加应用设置里删除应用接口 (家-19)
+
+2017-9-13
+1.增加设置ctrl_state的返回值	（孩-7)
+2. /act/kid/apptodayperiod/接口地址改成/act/kid/appperiod/ （孩-6）
+
+2017-9-17
+1.增加同步应用当前使用情况(批量更新接口)  （孩-9)
+2.应用换组支持多个appid (家-5)
+3.修改获取最新的动态接口 (家-20)
+
+2017-9-20
+1.增加家长端和孩子端版本升级接口 (孩-10 家-21)
+2.增加 修改孩子信息(家-22)  解绑(家-23) 提交建议(家-24)接口 
+
+2017-9-24
+1.(孩-9)增加json_open_app当前打开应用字段
+2.(家-17)修改此接口返回值
+3.新增(家-25) 家长端操作孩子更换手机
+4.(孩-2)增加mobile_model手机型号信息字段
+5.新增(孩-12)  同步家长端首页定位和应用信息
+
+2017-10-9
+1.(家-1)微信登录测试接口 (此接口测试微信登录，等安卓和IOS都对接完微信后接口地址更换为之前的/act/carer/wxlogin/ 去掉N)
+	/act/carer/wxloginN/
+	请求参数
+		platform	平台
+		version		版本号
+		sno			渠道号	
+		sign		加密后的字符串	
+		code		微信的code
+	返回值
+		token	
+	例子 
+		{"code":"0000","msg":"","result":"3c52247fd2932708d3a1dcbf6e527829"}
+2.(家-2)	 家长端绑定接口分为两步操作
+		 接口会返回是否需要完善孩子名字等信息
+		 如果需要完善在调用(家-22.修改孩子信息)接口
+3.(孩-13) 新增 孩子端配置版本号比较接口 （接口有详细说明）	 
+	(孩-2)、(孩-6)、(孩-7)都增加了sv字段，最后版本号
+	
+2017-11-19
+1.增加家长端(26、27)登录注册接口	(/act/login/register/和/act/login/login/)
+2.(家-1)微信登录接口地址更换，参数不变 更换成 /act/login/wxlogin/
+
+
+说明：
+1.使用HTTP协议进行信息交互，字符编码统一采用UTF-8
+2.参数传递方式 默认POST方式
+3.返回信息统一是JSON格式
+4.请求参数按照参数名正序排序后加密
+5.加密使用的key为 vFMdQhn6RCNQM1lzJ2ABT1yeEz0qlMF5MOiDl93cCB+Zxtw0zRL4bHJ92nIBtNs
+6.所有时间戳都是秒级时间戳
+
+主要错误码说明:
+'9902':'参数SIGN错误！' 
+'9903','参数TOKEN错误！'    //token失效重新登录
+'9904','参数IMEI错误！'     //手机失效，需要重新处理
+'9905','参数QRCODE错误！'
+'9906','参数MID错误！'
+
+请求地址：http://api.sowe.com
+
+参数：
+	platform	平台 01-安卓 02-IOS
+	version		版本号 1.0.0
+	sign		加密后的字符串 (按照POST里不包含sign参数名正序排序后加密)
+	以上参数每个接口都包含   
+	sno			渠道号 0-官方 用户注册时包含
+
+接口统一返回格式
+{code:'',msg:'',result:''}
+code 0000  表示成功result有值，否则result为空
+下面的返回值均在接口返回成功的情况下的result内部内容
+code    字典
+0000    成功
+9999	系统错误
+9901    参数错误
+9902   	参数SIGN错误
+9903	参数TOKEN错误，重新登录
+9904	参数IMEI错误
+
+小米push说明：
+孩子端参数：
+alias 别名用imei
+payload 格式 {"reload_type":"1"} 
+1-家长端扫码绑定成功 (/act/kid/bindstate/)
+2-应用配置修改  (/act/kid/appperiod/)
+3-护眼和快捷配置修改 (/act/kid/setting/)
+4-时间管理配置修改  (/act/kid/appperiod/)
+5-刷新家长端首页 (/act/data/synckidstatus/)
+6-更换手机，停止所有监控
+
+下载家长端地址:
+http://www.sowe.com/guard/parents
+下载孩子端地址
+http://www.sowe.com/guard/students 
+
+权限配置对应编号
+
+1 	查看用户使用应用数据
+2 	锁屏清理  
+4 	激活设备管理器 (卸载软件监控失效)
+8	在其它应用上层显示 (可用时间无法显示)
+16 	设置默认桌面 (重新启动无法监控)
+
+
+孩子端接口:
+1.获取服务时间 /act/data/servertime/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串
+返回值
+	time		服务器时间 秒级时间戳
+例子 
+{"code":"0000","msg":"","result":{"time":1501398410}}
+
+2.孩子手机验证是否绑定 /act/kid/bindstate/
+请求参数
+	platform	平台
+	version		版本号
+	sno			渠道号	
+mobile_model	孩子手机型号  包括手机厂商，安卓版本，厂商版本 以|分割
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+
+例子 
+	{"code":"0000","msg":"","result":{"bind_state":0,"bind_url":"http:\/\/api.sowe.com\/act\/carer\/gobind\/?qrcode=1124d49f92886e77bc218a68dd1053d9","sv":0}}
+	bind_state 是否有绑定 1-有 0-无 
+	bind_url 绑定URL qrcode为绑定孩子code
+	sv 绑定状态的版本(type-1)
+	
+3.同步定位信息 /act/data/syncsite/
+请求参数
+	platform	平台
+	version		版本号	
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	json_sites	位置坐标JSON字符串 [{"t":1501398410,"x":101.00,"y":101.01},{"t":1501398470,"x":101.02,"y":101.01}] t-秒级时间戳(分钟) x-纬度 y-经度
+
+例子 	
+{"code":"0000","msg":"","result":""}
+
+4.同步应用列表 /act/data/syncapp/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	json_apps	应用包名JSON字符串 [{"o":1,"a":"com.1"},{"o":1,"a":"com.1"}] o-操作1-增加 不存在为增加 2-删除 3-初始化 a-包名
+返回值
+	不包含的包名	
+例子 	
+{"code":"0000","msg":"","result":["com.tencent.peng123"]}	
+
+5.同步应用到系统应用列表 /act/data/syncsysapp/
+请求参数
+	platform	平台
+	version		版本号	
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	json_apps	应用包名JSON字符串 [{"a":"com.1","n":"应用名称","i":"png图片base64编码"}] a-包名 n-应用名称 i-png图片base64编码
+
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+	
+6.孩子端获取今天的时间规则及应用使用时间限制 /act/kid/appperiod/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+返回值
+	时间配置、应用时间配置
+例子
+	{"code":"0000","msg":"","result":{"period":[{"period_time":"1-5","day_min":"60","begin_hour":"15","end_hour":"23"},{"period_time":"6-7","day_min":120,"begin_hour":"9","end_hour":"21"}],"groups":[{"list":[{"apk":"com.tencent.peng"},{"apk":"air.com.tencent.qqfarmios"}],"holiday_min":"60","study_min":"60","sys_state":"1"},{"list":[{"apk":"com.kc.test2"},{"apk":"com.tencent.mm"},{"apk":"com.kc.test"}],"holiday_min":"31","study_min":"32","sys_state":"2"},{"list":[],"holiday_min":0,"study_min":0,"sys_state":"4"},{"list":[],"holiday_min":"30","study_min":"30","sys_state":"0"}],"sv":0}}
+	period(全局时间配置): period_time- 1-5上课日 6-7休息日 begin_hour-开始小时 end_hour-结束小时 day_min-使用多少分钟
+	groups(组配置):holiday_min-休息日使用分钟 study_min-上课日使用分钟 sys_state-1-游戏 2-应用 3-白名单 4-黑名单 0-自定义组
+					list(组下的应用列表)-apk 包名
+	sv 时间规则和应用配置最后修改的版本(type-2)					
+
+7. 孩子端获取快捷设置和护眼设置 /act/kid/setting/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+返回值
+	护眼设置和快捷设置
+例子 	
+	{"code":"0000","msg":"","result":{"mobile_id":1,"prot_eye_min":30,"prot_eye_rest_min":5,"prot_eye_state":1,"daemon_state":1,"uninstall_state":1,"forbid_night_state":0,"create_time":0,"sv":0}}	
+	prot_eye_min-护眼模式每隔多少分钟 prot_eye_rest_min-护眼模式休息多少分钟 prot_eye_state-护眼模式 1-开启 0-不开启
+	daemon_state-守护模式  1-开启 0-不开启 uninstall_state-卸载模式  1-开启 0-不开启 forbid_night_state-宵禁模式  1-开启 0-不开启
+	ctrl_state-控制设置模式 1-时间到直接退出应用 2-提示时间到关闭应用
+	sv 快捷设置和护眼设置最后修改的版本(type-3)
+
+8. 同步应用当前使用情况（接口作废）  /act/data/appusestatus/ 
+
+9. 同步应用当前使用情况(批量更新接口)  /act/data/syncuseapp/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	json_use_apps  今日应用使用情况数据 (每阶段增量数据)
+					{"1501130364":[{"a":"com.1","u":100,"t":5,"bt":1503130364,"et":1503130364}],
+					"1502130364":[{"a":"com.1","u":100,"t":5,"bt":1503130364,"et":1503130364}],
+					"1503130364":[{"a":"com.1","u":100,"t":5,"bt":1503130364,"et":1503130364}]}
+					$KEY-同步的时间 $VALUE-需要同步的应用列表
+					应用列表数据	a：app包名 u：今日总使用时长秒 t：运行次数 bt:第一次启动时间 et：最后一次启动时间
+					
+	json_open_app {"a":"com.1","an":"微信","u":"100","tu":"1000"}
+				  a:当前应用包名	an:应用名称 u:当前应用使用时长秒 tu：今日总使用时长秒	
+				  
+	json_open_app 不能为空 json_use_apps可为空
+
+例子 	
+{"code":"0000","msg":"","result":""}
+
+10.版本升级  /act/kassist/version/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串
+返回值
+	是有需要升级
+例子 	
+{"code":"0000","msg":"","result":{'up':1,'down_url':'http://...','msg':'更新信息'}}
+up-0:不升级 1-升级 down_url-下载地址 msg-更新信息
+
+
+11.同步孩子端所有应用列表（以此列表为准） /act/data/syncinitapp/ 
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	json_apps	应用包名JSON字符串 [{"a":"com.1"},{"a":"com.1"}] a-包名
+返回值
+	不包含的包名	
+例子 	
+{"code":"0000","msg":"","result":["com.tencent.peng123"]}	
+
+12.同步家长端首页定位和应用信息 /act/data/synckidstatus/ 
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	json_status	包括最新的定位信息和打开的应用信息 
+				{"open_app":{"a":"com.1","an":"微信","u":"100","tu":"1000"},"site":{"t":1501398410,"x":101.00,"y":101.01}}
+
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+13.孩子端配置版本号比较 /act/kid/setversion/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	model		手机型号 (huawei、xiaomi、oppo等)
+	vrom		rom版本
+	vos			os版本	
+	json_sv		配置最后记录版本号 版本记录有三个类型1，2，3，20 (1,2,3与小米push类型对应如果有变化与push调用接口一致，20为受限应用)，
+				{"1":0,"2":0,"3":1507528341,"20":0}  如果不存在按0处理
+返回值
+	返回需要更新的类型
+例子 	
+{"code":"0000","msg":"","result":["1","3"]}
+
+14.孩子端修改push token /act/kid/editpushtoken/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	model		手机型号 (默认值huawei,可不传)
+	push_token	push的token		
+返回值
+	返回需要更新的类型
+例子 	
+{"code":"0000","msg":"","result":""}
+
+15.孩子端获取受限包名列表 /act/kconfig/limitedpackage/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	model		手机型号 (huawei、xiaomi、oppo等)
+	vrom		rom版本
+	vos			os版本
+返回值	
+	最后修改的版本号和受限包名列表
+例子 	
+{"code":"0000","msg":"","result":{"sv":"1516937165","pkg":{"unlimited":[{"a":"com.android.contacts"},{"a":"com.android.mms"},{"a":"com.android.incallui"}],"limited":[{"a":"com.android.settings","c":"com.android.settings.Settings$ManageApplicationsActivity"},{"a":"com.huawei.systemmanager"}],"desktop":[{"a":"com.huawei.android.launcher","c":"com.huawei.android.launcher.Launcher"}]}}}	
+	sv:受限包名最后修改版本   pkg 受限包名列表
+	"unlimited":[{"a":"com.android.contacts"},{"a":"com.android.mms"},{"a":"com.android.incallui"}]
+	unlimited : 不受限包名 limited：受限包名 desktop 桌面
+	{"a":"com.huawei.android.launcher","c":"com.huawei.android.launcher.Launcher"}
+	{"a":"com.android.contacts"} - c为null的情况
+	a 为包名 c 为类名 a和c至少有一个存在 
+	
+	
+16.学生端权限设置 /act/kconfig/setpermissionstate/
+请求参数
+	platform	平台
+	version		版本号
+	sno			渠道号	
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	model		手机型号 (huawei、xiaomi、oppo等)
+	vrom		rom版本
+	vos			os版本
+	model_type	手机具体型号名称 (例如 huawei的MHA-AL00)
+	permission_state	 权限状态 JSON格式字符串 {"1":0,"4":1}  ("4":1 其中4代表激活设备管理器权限 1代表权限已经设置 如果是0代表权限未设置)
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+17.获取学生端权限设置 /act/kconfig/getpermissionstate/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	model		手机型号 (huawei、xiaomi、oppo等)
+	vrom		rom版本
+	vos			os版本
+例子 	
+{"code":"0000","msg":"","result":[{"id":1,"state":1},{"id":2,"state":0},{"id":4,"state":0},{"id":8,"state":1},{"id":16,"state":1}]}
+{"id":1,"state":1} id为对应的权限  state 0 未设置 1 设置
+
+18.获取学生端权限配置信息 /act/kconfig/permissionconfig/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	imei		手机IMEI(唯一标示)
+	model		手机型号 (huawei、xiaomi、oppo等)
+	vrom		rom版本
+	vos			os版本
+例子 
+{"code":"0000","msg":"","result":[{"id":1,"info":"为了能够读取当前使用App的基本信息，需要开启（允许访问App使用记录）权限。\n\n在列表里找到“飞扬防沉迷学生端”，打开「允许访问使用记录」功能。\n\n现在授权?","package":"","class":""},{"id":2,"info":"为了您的正常使用监控功能需把（飞扬防沉迷学生端）设置成无限制。\n\n访问记录权限 在列表里找到“飞扬防沉迷学生端”，点击开启保护。\n\n现在设置?","package":"","class":""},{"id":4,"info":"","package":"","class":""},{"id":8,"info":"","package":"","class":""},{"id":16,"info":"","package":"","class":""}]}
+id 权限编号
+info 描述信息 (换行\n)
+package 包名
+class 类名 (包名和类名返回都是空字符串)
+
+
+家长端接口：
+1.家长端微信登录 /act/login/wxlogin/
+请求参数
+	platform	平台
+	version		版本号
+	sno			渠道号	
+	sign		加密后的字符串	
+	code		微信的认证code
+返回值
+	token	
+例子 
+{"code":"0000","msg":"","result":"3c52247fd2932708d3a1dcbf6e527829"}
+	
+	
+2.家长端绑定 /act/carer/bind/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	qrcode		孩子二维码
+返回值
+	是否需要修改孩子信息
+例子 	
+{"code":"0000","msg":"","result":{"mid":21,"edit":1}}	
+	mid - 孩子手机ID
+	eidt 1-继续修改孩子名称和年级 0-不修改
+
+3.家长端获取绑定的孩子手机ID列表 /act/carer/bindmids/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+返回值
+	孩子信息列表 id-手机ID kid_name 名字 sex 性别 grade 年级 1-12	
+例子 
+{"code":"0000","msg":"","result":[{"id":"1","kid_name":"石头","sex":"1","grade":"1"}]}
+	
+
+4.获取孩子端应用和组列表 /act/appset/list/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID	
+返回值
+	组列表和应用列表
+例子
+	{"code":"0000","msg":"","result":[{"id":"1","group_name":"游戏","sys_state":"1","holiday_min":"60","study_min":"60","list":[{"id":"2","apk_name":"air.com.tencent.qqfarmios","app_name":"QQ农场-捕鱼时光","app_icon":"http:\/\/i.gtimg.cn\/open\/app_icon\/00\/73\/11\/77\/100731177_100_m.png"},{"id":"3","apk_name":"com.tencent.peng","app_name":"天天爱消除","app_icon":"http:\/\/i.gtimg.cn\/open\/app_icon\/00\/68\/98\/05\/100689805_100_m.png"}]},{"id":"2","group_name":"应用","sys_state":"2","holiday_min":"60","study_min":"60","list":[{"id":"1","apk_name":"com.tencent.mm","app_name":"微信","app_icon":"http:\/\/i.gtimg.cn\/open\/app_icon\/00\/73\/37\/32\/100733732_100_m.png"},{"id":"4","apk_name":"com.kc.test","app_name":"测试","app_icon":"http:\/\/api.kc.com\/upload\/app\/20170801\/ea22c6c34ba2a9ddb590ec3c1d1efe77.png"},{"id":"5","apk_name":"com.kc.test2","app_name":"测试2","app_icon":"http:\/\/api.kc.com\/upload\/app\/20170808\/52f3c23e0bc9e04d778a8be4e265b99f.png"}]},{"id":"3","group_name":"白名单","sys_state":"3","holiday_min":"0","study_min":"0","list":[]},{"id":"4","group_name":"黑名单","sys_state":"4","holiday_min":"0","study_min":"0","list":[]}]}		
+	id:组ID、group_name:组名称、sys_state:1-游戏 2-应用 3-白名单 4-黑名单 0-自定义组(可删除) holiday_min:节假日玩多少分钟 study_min:上学日玩多少分钟 list:应用列表
+	list说明 id:应用ID apk_name:包名 app_name:应用名称 app_icon:应用图标
+
+5.应用换组 	/act/appset/editappgroup/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID	
+	appid		应用ID列表 逗号分隔 例: 10,23,23
+	gid			要更换的组ID
+例子 	
+{"code":"0000","msg":"","result":""}
+
+6.创建组 /act/appset/creategroup/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID	
+	group_name	组名称
+	holiday_min	节假日玩的分钟数
+	study_min	上学日玩的分钟数
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+7.删除组 /act/appset/deletegroup/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	gid			要删除的组ID (系统组和有应用的组都不能删除)
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+8.修改组	/act/appset/editgroup/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID	
+	gid			要修改的组ID
+	holiday_min	节假日玩的分钟数
+	study_min	上学日玩的分钟数
+例子 	
+{"code":"0000","msg":"","result":""}
+
+9.获取快捷设置和护眼设置 /act/mset/setting/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+返回值
+	护眼设置和快捷设置
+例子 	
+	{"code":"0000","msg":"","result":{"mobile_id":1,"prot_eye_min":30,"prot_eye_rest_min":5,"prot_eye_state":1,"daemon_state":1,"uninstall_state":1,"forbid_night_state":0,"ctrl_state":1,"create_time":0}}	
+	prot_eye_min-护眼模式每隔多少分钟 prot_eye_rest_min-护眼模式休息多少分钟 prot_eye_state-护眼模式 1-开启 0-不开启
+	daemon_state-守护模式  1-开启 0-不开启 uninstall_state-卸载模式  1-开启 0-不开启 forbid_night_state-宵禁模式  1-开启 0-不开启
+	ctrl_state-控制设置模式 1-时间到直接退出应用 2-提示时间到关闭应用
+	
+10.修改护眼设置	/act/mset/editproteye/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	pem			护眼每隔多少分钟
+	perm		护眼休息多少分钟
+例子 	
+	{"code":"0000","msg":"","result":""}
+	
+11. 修改快捷设置  /act/mset/editquicksetting/	
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	state		护眼|守护|卸载|宵禁 状态修改   例如：N|0|1|N   |分割位 N代表不修改
+例子 	
+	{"code":"0000","msg":"","result":""}
+	
+12.获取时间规则	/act/mset/periodsetting/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+返回值
+	获取时间规则列表
+例子 	
+	{"code":"0000","msg":"","result":[{"id":"2","mobile_id":"1","period_name":"上课日","period_time":"1-5","day_min":"60","begin_hour":"15","end_hour":"19","create_time":"1502680383"},
+	{"id":"1","mobile_id":"1","period_name":"休息日","period_time":"6-7","day_min":"120","begin_hour":"9","end_hour":"21","create_time":"1502680331"}]}
+	id-主键（修改删除用） period_name-名称 period_time '1-5'上课日  '6-7'休息日 day_min-每天最多可用分钟数 begin_hour-开始小时 end_hour-结束小时
+	
+	
+13. 创建时间规则	/act/mset/createperiodsetting/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	period_time	重复  '1-5'上课日  '6-7'休息日
+	day_min		每天最多可用分钟数
+	begin_hour	开始小时
+	end_hour	结束小时
+例子 	
+	{"code":"0000","msg":"","result":""}
+	
+14.修改时间规则	/act/mset/editperiodsetting/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	id			时间规则主键  (0为新增，大于0为修改)
+	period_time	重复  '1-5'上课日  '6-7'休息日 (可为空)
+	day_min		每天最多可用分钟数 (可为空)
+	begin_hour	开始小时 (可为空)
+	end_hour	结束小时 (可为空)
+例子 	
+	{"code":"0000","msg":"","result":""}
+	
+15.删除时间规则	/act/mset/deleteperiodsetting/	
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	id			时间规则主键
+例子 	
+	{"code":"0000","msg":"","result":""}
+	
+16.获取手机状态前发送push信息 /act/carer/loadkidstatus/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+例子 	
+	{"code":"0000","msg":"","result":""}
+	
+17.获取手机状态 /act/carer/kidstatus/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+返回值
+	获取手机当前状态包括定位和应用使用情况
+例子
+	{"code":"0000","msg":"","result":{"daemon_desc":"","site_desc":"北京市东城区龙潭街道龙潭路3号院龙潭北里一条","site_date":"5分钟前","site_x":"39.882784","site_y":"116.435983","app_desc":"今日头条（新闻阅读）","app_du":"8分钟","app_tdu":"51分钟"}}
+	daemon_desc-守护中信息 (如果守护按钮关闭会返回守护关闭 否则返回为空字符串)
+	site_desc-定位地址信息,site_date-定位时间字符串 (例：刚刚、一小时前..),site_x-定位高德纬度,site_y-定位高德经度
+	app_desc-当前应用名称 app_du 应用时长(例:10分钟 1小时) app_tdu 总应用时长(例:10分钟 1小时) 
+	
+18.修改控制设置 /act/mset/editctrlsetting/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	ctrl_state  控制设置模式 1-时间到直接退出应用 2-提示时间到关闭应用
+例子 	
+	{"code":"0000","msg":"","result":""}
+	
+19.删除应用(只是将应用从组里排除) /act/appset/deleteapp/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	appid			要删除的应用ID
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+20.获取最新的动态 /act/carer/kidtimeline/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+返回值
+	定位和应用动态	
+例子 	
+{"code":"0000","msg":"","result":[{'type_id':1,'desc':'定位动态详细信息','date':'日期'},{'type_id':2,'desc':'应用动态详细信息','date':'日期'}]}
+type_id- 1 定位动态 2 应用动态  date-日期 desc-详情
+
+21.版本升级  /act/cassist/version/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串
+返回值
+	是有需要升级
+例子 	
+{"code":"0000","msg":"","result":{'up':1,'down_url':'http://...','msg':'更新信息'}}
+up-0:不升级 1-升级 down_url-下载地址 msg-更新信息
+
+22.修改孩子信息 /act/carer/editkid/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID	
+	kid_name	名字 不能为空
+	sex			性别 0-男孩 默认 1-女孩
+	grade		年级 1-12 1-6小学1-6 7-9初中1-3 10-12高中	1-3
+例子 	
+{"code":"0000","msg":"","result":""}
+
+23.解绑 /act/carer/unbind/
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID	
+例子 	
+{"code":"0000","msg":"","result":""}
+
+24.提交建议 /act/cassist/suggest/
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	tid 		APP类型 0-孩子端 1-家长端 
+	suggest		意见或建议
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+
+25.家长端操作孩子更换手机 /act/carer/kidchangemobile/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID
+	qrcode		新更换孩子手机的二维码
+例子 	
+{"code":"0000","msg":"","result":""}
+
+26.家长端用户注册 /act/login/register/
+请求参数
+	platform	平台
+	version		版本号
+	sno			渠道号	
+	sign		加密后的字符串	
+	username	用户名 (2-20位 中文占1位)
+	passwd		密码 (至少6位)
+	icode		邀请码 (不能为空)
+返回值
+	token	
+例子 
+{"code":"0000","msg":"","result":"3c52247fd2932708d3a1dcbf6e527829"}
+
+27.家长端用户登录 /act/login/login/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	username	用户名
+	passwd		密码
+返回值
+	token	
+例子 
+{"code":"0000","msg":"","result":"3c52247fd2932708d3a1dcbf6e527829"}
+
+28.家长端快捷登录接口 /act/login/express/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+返回值
+	token	
+例子 
+{"code":"0000","msg":"","result":"3c52247fd2932708d3a1dcbf6e527829"}
+
+29.家长端退出登录接口 /act/login/logout/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	token		token
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+30.获取当天应用使用时间情况列表 /act/report/todayapp/
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID	
+例子
+没有数据时返回
+{"code":"9914","msg":"获取数据为空!","result":""}
+有数据返回
+{"code":"0000","msg":"","result":{"total_second":229,"apps":[{"app_name":"微信","apk_name":"com.tencent.mm","app_icon":"http:\/\/api.sowe.com\/upload\/app\/1000\/e3\/e39d2c7de19156b0683cd93e8735f348.png","second":216,"show_time":"3分钟36秒"},{"app_name":"网易云音乐","apk_name":"com.netease.cloudmusic","app_icon":"http:\/\/api.sowe.com\/upload\/app\/1000\/25\/25d38497d72d75227633ae777c2e0df5.png","second":13,"show_time":"13秒"}],"total_show_time":"3分钟49秒"}}
+total_show_time: 显示所有应用使用的总时间
+apps说明 apk_name:包名 app_name:应用名称 app_icon:应用图标 show_time 显示当前应用使用的时间
+
+
+31.手机号注册 /act/login/mobileregister/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	mobile_code 手机号码
+	passwd 		密码 （长度最少为6位）
+	sms_code	手机验证码
+	
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+32.手机号登录 /act/login/mobilelogin/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	mobile_code 手机号码
+	passwd 		密码 （长度最少为6位）	
+返回值
+	token	
+例子 
+{"code":"0000","msg":"","result":"3c52247fd2932708d3a1dcbf6e527829"}
+
+33.发送验证码 /act/login/sendsmscode/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	mobile_code 手机号码
+	sms_type	发送类型 1-注册 2-找回密码
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+34.重置密码   /act/login/mobileresetpasswd/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串	
+	mobile_code 手机号码
+	passwd 		密码 （长度最少为6位）
+	sms_code	手机验证码
+例子 	
+{"code":"0000","msg":"","result":""}	
+
+35.获取banner活动列表 /act/cassist/activitylist/	
+请求参数
+	platform	平台
+	version		版本号
+	sno			渠道号	
+	sign		加密后的字符串	
+	width		屏幕宽像素
+	pos			位置 默认值为1
+例子 	
+{"code":"0000","msg":"","result":[{"title":"测试URL","url":"http:\/\/www.sowe.com","img":"http:\/\/s.jingcaile.com\/M00\/13\/6F\/oIYBAFrC6iGAJNYXAALa5uposN0292.png","desc":"测试URL"},{"title":"测试内部跳转","url":"go:123456","img":"http:\/\/s.jingcaile.com\/M00\/13\/60\/oIYBAFqWCreAd6BUAAQmqqfADaU699.png","desc":"测试内部跳转"}]}
+title：活动标题 img：图片地址 desc： 描述 url：跳转地址 2种形式 1.外部h5网站 http(s)://  2.app内页面 格式为 go:123 123为app内页面编号,编号需要安卓和ios提前定义下
+
+36.获取学生端权限设置(只列出未设置) /act/cconfig/getkidpermissionstate/
+请求参数
+	platform	平台
+	version		版本号
+	sign		加密后的字符串		
+	token		token
+	mobile_id	孩子手机ID		
+例子 	
+{"code":"0000","msg":"","result":{"tip":1,"state":[{"id":2,"state":0,"info"=>"为了您可以更好的管理您的孩子，请去学生端开启所有要开启的权限。"},{"id":4,"state":0,"info"=>"为了您可以更好的管理您的孩子，请去学生端开启所有要开启的权限。"}]}}
+tip 1显示权限设置提示 0 不显示
+state 只显示没有设置的权限ID
+info 安装提示 现在是固定的一句话（为了您可以更好的管理您的孩子，请去学生端开启所有要开启的权限。）
+	
+	
+	
+	
+	
+					
+	
+	
+	
+
+
+
