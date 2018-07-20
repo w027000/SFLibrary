@@ -1,16 +1,13 @@
 package com.shufei.library.common.http.model;
 
-import android.os.Build;
 import android.text.TextUtils;
 
-import com.shufei.library.common.http.SFHttp;
-import com.shufei.library.common.http.utils.SFLogger;
+import com.shufei.library.common.log.SLog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,7 +19,6 @@ import java.util.TimeZone;
 
 /**
  * 请求头的包装类
- *  2018年7月19日
  */
 public class HttpHeaders implements Serializable {
 
@@ -59,14 +55,12 @@ public class HttpHeaders implements Serializable {
     public static final String HEAD_KEY_SET_COOKIE = "Set-Cookie";
     public static final String HEAD_KEY_SET_COOKIE2 = "Set-Cookie2";
 
-
     public LinkedHashMap<String, String> headersMap;
-    private static String acceptLanguage;
-    private static String userAgent;
 
-    private void init() {
-        headersMap = new LinkedHashMap<>();
-    }
+    /**请求头允许客户端声明它可以理解的自然语言，以及优先选择的区域方言。*/
+    private static String acceptLanguage;
+    /**用户代理*/
+    private static String userAgent;
 
     public HttpHeaders() {
         init();
@@ -77,6 +71,10 @@ public class HttpHeaders implements Serializable {
         put(key, value);
     }
 
+    private void init() {
+        headersMap = new LinkedHashMap<>();
+    }
+
     public void put(String key, String value) {
         if (key != null && value != null) {
             headersMap.put(key, value);
@@ -85,7 +83,9 @@ public class HttpHeaders implements Serializable {
 
     public void put(HttpHeaders headers) {
         if (headers != null) {
-            if (headers.headersMap != null && !headers.headersMap.isEmpty()) headersMap.putAll(headers.headersMap);
+            if (headers.headersMap != null && !headers.headersMap.isEmpty()) {
+                headersMap.putAll(headers.headersMap);
+            }
         }
     }
 
@@ -112,7 +112,7 @@ public class HttpHeaders implements Serializable {
                 jsonObject.put(entry.getKey(), entry.getValue());
             }
         } catch (JSONException e) {
-            SFLogger.printStackTrace(e);
+            SLog.printStackTrace(e);
         }
         return jsonObject.toString();
     }
@@ -157,7 +157,6 @@ public class HttpHeaders implements Serializable {
     }
 
     /**
-     * 可接受的语言
      * Accept-Language: zh-CN,zh;q=0.8
      */
     public static String getAcceptLanguage() {
@@ -181,60 +180,7 @@ public class HttpHeaders implements Serializable {
      * User-Agent: Mozilla/5.0 (Linux; U; Android 5.0.2; zh-cn; Redmi Note 3 Build/LRX22G) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Mobile Safari/537.36
      */
     public static String getUserAgent() {
-        if (TextUtils.isEmpty(userAgent)) {
-            String webUserAgent = null;
-            try {
-                Class<?> sysResCls = Class.forName("com.android.internal.R$string");
-                Field webUserAgentField = sysResCls.getDeclaredField("web_user_agent");
-                Integer resId = (Integer) webUserAgentField.get(null);
-                webUserAgent = SFHttp
-                        .getInstance().getContext().getString(resId);
-            } catch (Exception e) {
-                // We have nothing to do
-            }
-            if (TextUtils.isEmpty(webUserAgent)) {
-                webUserAgent = "okhttp-okgo/jeasonlzy";
-            }
-
-            Locale locale = Locale.getDefault();
-            StringBuffer buffer = new StringBuffer();
-            // Add version
-            final String version = Build.VERSION.RELEASE;
-            if (version.length() > 0) {
-                buffer.append(version);
-            } else {
-                // default to "1.0"
-                buffer.append("1.0");
-            }
-            buffer.append("; ");
-            final String language = locale.getLanguage();
-            if (language != null) {
-                buffer.append(language.toLowerCase(locale));
-                final String country = locale.getCountry();
-                if (!TextUtils.isEmpty(country)) {
-                    buffer.append("-");
-                    buffer.append(country.toLowerCase(locale));
-                }
-            } else {
-                // default to "en"
-                buffer.append("en");
-            }
-            // add the model for the release build
-            if ("REL".equals(Build.VERSION.CODENAME)) {
-                final String model = Build.MODEL;
-                if (model.length() > 0) {
-                    buffer.append("; ");
-                    buffer.append(model);
-                }
-            }
-            final String id = Build.ID;
-            if (id.length() > 0) {
-                buffer.append(" Build/");
-                buffer.append(id);
-            }
-            userAgent = String.format(webUserAgent, buffer, "Mobile ");
-            return userAgent;
-        }
+        userAgent = UserAgent.instance();
         return userAgent;
     }
 
@@ -257,5 +203,4 @@ public class HttpHeaders implements Serializable {
     public String toString() {
         return "HttpHeaders{" + "headersMap=" + headersMap + '}';
     }
-
 }
